@@ -12,10 +12,10 @@ that we have enough licenses available in our pool.
 
 This small toolkit is implemented in two parts:
 
-  * `spss-use.r` (an [http://www.r-project.org/](R) program that reads
+  * `spss-use.r` (an [R](http://www.r-project.org/) program that reads
     a Sentinel usage report CSV file and generates a graph and a
     utilization text file)
-  * `spss_use_nagios.py` (a [http://python.org/](Python) program that
+  * `spss_use_nagios.py` (a [Python](http://python.org/) program that
     reads the utilization file and responds for our Nagios monitoring
     system so we can get an alert when usage reaches a warning or
     critical threshold).
