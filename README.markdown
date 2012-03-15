@@ -41,6 +41,12 @@ this is run with:
 
 	R -f spss-use.r
 
+Example Output
+--------------
+
+See the included `spss-usage.png` graphic for an example of the graph
+produced.
+
 Monitoring
 ----------
 
