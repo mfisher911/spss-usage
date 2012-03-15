@@ -11,6 +11,7 @@ This reporting functionality was written to ensure that we make sure
 that we have enough licenses available in our pool.
 
 This small toolkit is implemented in two parts:
+
   * `spss-use.r` (an [http://www.r-project.org/](R) program that reads
     a Sentinel usage report CSV file and generates a graph and a
     utilization text file)
