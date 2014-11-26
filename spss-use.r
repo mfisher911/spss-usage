@@ -1,4 +1,4 @@
-## Copyright (c) 2012, University of Rochester
+## Copyright (c) 2012, 2014, University of Rochester
 ## All rights reserved.
 
 ## Redistribution and use in source and binary forms, with or without
@@ -32,16 +32,37 @@
 data <- read.csv("spss-usage.csv", header=FALSE)
 
 # filter the SPSS use data by product type
-spss.data <- subset(data, V1 == 1200)
+# I'm sure there are cleverer ways to do this!
+allspss.data <- subset(data, V1 == 1200)
+spss19.data <- subset(data, V1 == 1200 & V2 == "v190")
+spss20.data <- subset(data, V1 == 1200 & V2 == "v200")
+spss21.data <- subset(data, V1 == 1200 & V2 == "v210")
+spss22.data <- subset(data, V1 == 1200 & V2 == "v220")
 # further filter Amos by only checked out items
 amos.data <- subset(data, V1 == 9005 & (V6 == 0 | V6 == 8))
 
 # make an array with the date (data[,4]) and time (data[,5]) columns
 # joined and converted to numerics
-spss.use <- data.frame(datetime=strptime(paste(spss.data[,4],
-                                               spss.data[,5]),
-                                         "%m/%d/%Y %H:%M:%S"),
-                       users=spss.data[,7])
+allspss.use <- data.frame(datetime=strptime(paste(allspss.data[,4],
+                                                  allspss.data[,5]),
+                                                  "%m/%d/%Y %H:%M:%S"),
+                          users=allspss.data[,7])
+spss19.use <- data.frame(datetime=strptime(paste(spss19.data[,4],
+                                                 spss19.data[,5]),
+                                                 "%m/%d/%Y %H:%M:%S"),
+                         users=spss19.data[,7])
+spss20.use <- data.frame(datetime=strptime(paste(spss20.data[,4],
+                                                 spss20.data[,5]),
+                                                 "%m/%d/%Y %H:%M:%S"),
+                         users=spss20.data[,7])
+spss21.use <- data.frame(datetime=strptime(paste(spss21.data[,4],
+                                                 spss21.data[,5]),
+                                                 "%m/%d/%Y %H:%M:%S"),
+                         users=spss21.data[,7])
+spss22.use <- data.frame(datetime=strptime(paste(spss22.data[,4],
+                                                 spss22.data[,5]),
+                                                 "%m/%d/%Y %H:%M:%S"),
+                         users=spss22.data[,7])
 amos.use <- data.frame(datetime=strptime(paste(amos.data[,4],
                                                amos.data[,5]),
                                          "%m/%d/%Y %H:%M:%S"),
@@ -49,23 +70,32 @@ amos.use <- data.frame(datetime=strptime(paste(amos.data[,4],
 
 # Title the graph with the date range; \u2013 is EM DASH
 TITLE = paste("SPSS License Utilization: ",
-              strftime(min(spss.use$datetime), "%b %d, %Y"), " \u2013 ",
-              strftime(max(spss.use$datetime), "%b %d, %Y"), sep="")
+              strftime(min(allspss.use$datetime), "%b %d, %Y"), " \u2013 ",
+              strftime(max(allspss.use$datetime), "%b %d, %Y"), sep="")
 
 # number of purchased licenses
-MAXLICENSES <- 50  ## change this
+MAXLICENSES <- 40  ## change this
 MAXLICENSELABEL <- paste("available (", MAXLICENSES, ")", sep="")
 
 # convenience calculations for the highest utilization
-ymax <- max(spss.use$users)
-ymaxlab <- paste("max. SPSS used (", ymax, ")", sep="")
+ymax <- max(allspss.use$users)
+yearago <- as.Date(Sys.Date() - 365)
+lastyear <- subset(allspss.use, as.Date(datetime) >= yearago)
+yearmax <- max(lastyear$users)
+ymaxlab <- paste("max. SPSS used (", ymax, "/", yearmax, ")", sep="")
 
 # choose output file
 png(filename="spss-usage.png", width=800, height=600, bg="white")
 
 # make a line graph with the number of licenses used at a time
-plot(spss.use$datetime, spss.use$users, type="l", main=TITLE,
-     xlab="Month", ylab="Licenses Used", ylim=c(0, MAXLICENSES + 10))
+plot(allspss.use$datetime, allspss.use$users, type="l", main=TITLE,
+     xlab="Month", ylab="Licenses Used", ylim=c(0, MAXLICENSES + 10),
+     col="white")
+
+lines(spss19.use$datetime, spss19.use$users, col="blueviolet")
+lines(spss20.use$datetime, spss20.use$users, col="brown")
+lines(spss21.use$datetime, spss21.use$users, col="cadetblue")
+lines(spss22.use$datetime, spss22.use$users, col="darkorange")
 
 # Amos is too sparsely used to be recognizable with a line graph
 # (for now)
@@ -73,18 +103,22 @@ points(amos.use$datetime, amos.use$users, col="darkgreen", pch=20)
 
 # add a line for the most licenses used at a time
 abline(h=ymax, col="blue")
+abline(h=yearmax, col="blue", lty=2)
 
 # slightly wider line for maximum licenses available
 abline(h=MAXLICENSES, col="red", lwd=1.5)
 
 # add a legend
-legend(min(spss.use$datetime), MAXLICENSES + 11,
-       c(MAXLICENSELABEL, ymaxlab, 'SPSS', 'Amos'),
-       col=c("red", "blue", "black", "darkgreen"), cex=0.8, lty=1:1)
+legend(min(allspss.use$datetime), MAXLICENSES + 11,
+       c(MAXLICENSELABEL, ymaxlab, 'SPSS 19',
+         'SPSS 20', 'SPSS 21', 'SPSS 22', 'Amos'),
+       col=c("red", "blue", "blueviolet",
+             "brown", "cadetblue", "darkorange", "darkgreen"),
+       cex=0.8, lwd=1.5, lty=1:1)
 
 # save the output file
 dev.off()
 
 # Since the data is available, output last hour's use for Nagios monitoring.
-lasthour <- max(spss.use[spss.use$datetime >= (Sys.time() - 3600),]$users)
+lasthour <- max(allspss.use[allspss.use$datetime >= (Sys.time() - 3600),]$users, 0)
 cat(lasthour, file="max_spss_use.txt", sep="\n")
